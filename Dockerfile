@@ -37,8 +37,8 @@ WORKDIR /app
 COPY --from=builder --chown=app:app /app /app
 COPY --from=builder /bin/speedtest /bin/speedtest
 
-EXPOSE 9798
+EXPOSE 9898
 
 CMD ["gunicorn", "--bind", "0.0.0.0:9898", "main:app"]
 
-HEALTHCHECK --timeout=10s CMD wget --no-verbose --tries=1 --spider http://localhost:9798/health
+HEALTHCHECK --timeout=10s CMD wget --no-verbose --tries=1 --spider http://localhost:9898/health
