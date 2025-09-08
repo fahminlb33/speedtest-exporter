@@ -13,7 +13,7 @@ logging.basicConfig(encoding="utf-8", level=logging.DEBUG, format=format_string)
 
 app = Flask("Speedtest-Exporter")
 
-counter_labels = ["server_id", "isp", "location", "country"]
+counter_labels = ["test_uuid", "server_id", "isp", "location", "country"]
 counters = {
     "up": Gauge("speedtest_up", "Speedtest status whether the scrape worked"),
     "packet_loss": Gauge(
@@ -30,8 +30,8 @@ counters = {
         counter_labels,
     ),
     "upload_bandwidth": Gauge(
-        "speedtest_upload_bandwidth_bytes_per_second",
-        "Upload bandwidth in bytes/s",
+        "speedtest_upload_bandwidth_bits_per_second",
+        "Upload bandwidth in bits/s",
         counter_labels,
     ),
     "upload_duration": Gauge(
@@ -55,8 +55,8 @@ counters = {
         counter_labels,
     ),
     "download_bandwidth": Gauge(
-        "speedtest_download_bandwidth_bytes_per_second",
-        "Download bandwidth in bytes/s",
+        "speedtest_download_bandwidth_bits_per_second",
+        "Download bandwidth in bits/s",
         counter_labels,
     ),
     "download_duration": Gauge(
@@ -121,6 +121,7 @@ def metrics():
     result = json.loads(output_json)
 
     server_labels = {
+        "test_uuid": result["result"]["id"],
         "server_id": result["server"]["id"],
         "isp": result["server"]["name"],
         "location": result["server"]["location"],
