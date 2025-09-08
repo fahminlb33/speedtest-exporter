@@ -30,8 +30,8 @@ counters = {
         counter_labels,
     ),
     "upload_bandwidth": Gauge(
-        "speedtest_upload_bandwidth_bits_per_second",
-        "Upload bandwidth in bits/s",
+        "speedtest_upload_bandwidth_bytes_per_second",
+        "Upload bandwidth in bytes/s",
         counter_labels,
     ),
     "upload_duration": Gauge(
@@ -55,8 +55,8 @@ counters = {
         counter_labels,
     ),
     "download_bandwidth": Gauge(
-        "speedtest_download_bandwidth_bits_per_second",
-        "Download bandwidth in bits/s",
+        "speedtest_download_bandwidth_bytes_per_second",
+        "Download bandwidth in bytes/s",
         counter_labels,
     ),
     "download_duration": Gauge(
@@ -134,7 +134,7 @@ def metrics():
     counters["ping_jitter"].labels(**server_labels).set(result["ping"]["jitter"])
 
     counters["upload_bandwidth"].labels(**server_labels).set(
-        result["upload"]["bandwidth"]
+        result["upload"]["bandwidth"] * 8  # conversion to bytes/sec
     )
     counters["upload_duration"].labels(**server_labels).set(result["upload"]["elapsed"])
     counters["upload_size"].labels(**server_labels).set(result["upload"]["bytes"])
@@ -146,7 +146,7 @@ def metrics():
     )
 
     counters["download_bandwidth"].labels(**server_labels).set(
-        result["download"]["bandwidth"]
+        result["download"]["bandwidth"] * 8  # conversion to bytes/sec
     )
     counters["download_duration"].labels(**server_labels).set(
         result["download"]["elapsed"]
