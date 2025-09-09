@@ -4,9 +4,43 @@ import json
 import shutil
 import logging
 import subprocess
+from typing import Optional
 
-from flask import Flask
-from prometheus_client import make_wsgi_app, Gauge
+from flask import Flask, Response
+
+
+# custom prometheus gauge implementation
+class Gauge:
+    def __init__(self, metric_name: str, description: str, labels=None):
+        self.metric_name = metric_name
+        self.description = description
+        self.current_value = None
+        self.current_labels = (
+            {k: None for k in labels} if labels is not None else dict()
+        )
+
+    def labels(self, **labels):
+        self.current_labels = labels
+        return self
+
+    def set(self, value: float):
+        self.current_value = value
+        return self
+
+    def render(self):
+        render_str = (
+            f"# HELP {self.metric_name} {self.description}\n"
+            + f"# TYPE {self.metric_name} gauge"
+        )
+        if self.current_value is None:
+            return render_str
+
+        if len(self.current_labels) == 0:
+            return f"{render_str}\n{self.metric_name} {self.current_value}"
+
+        labels_str = ",".join(f'{k}="{v}"' for k, v in self.current_labels.items())
+        return f"{render_str}\n{self.metric_name}{{{labels_str}}} {self.current_value}"
+
 
 format_string = "level=%(levelname)s datetime=%(asctime)s %(message)s"
 logging.basicConfig(encoding="utf-8", level=logging.DEBUG, format=format_string)
@@ -82,7 +116,17 @@ counters = {
 }
 
 
-def run_test():
+def render_metrics() -> str:
+    metrics_str = ""
+    if counters["up"].current_value == 0:
+        metrics_str = counters["up"].render()
+    else:
+        metrics_str = "\n".join(gauge.render() for gauge in counters.values())
+
+    return Response(metrics_str, mimetype="text/plain; charset=utf-8")
+
+
+def run_test() -> Optional[str]:
     server_id = os.environ.get("SPEEDTEST_SERVER_ID")
     timeout = int(os.environ.get("SPEEDTEST_TIMEOUT", "300"))
 
@@ -116,7 +160,7 @@ def metrics():
     output_json = run_test()
     if output_json is None:
         counters["up"].set(0)
-        return make_wsgi_app()
+        return render_metrics()
 
     result = json.loads(output_json)
 
@@ -160,7 +204,7 @@ def metrics():
         result["download"]["latency"]["jitter"]
     )
 
-    return make_wsgi_app()
+    return render_metrics()
 
 
 @app.route("/health")
