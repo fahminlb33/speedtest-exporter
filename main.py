@@ -98,7 +98,7 @@ def run_test():
 
     try:
         output = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
-        logging.debug(output)
+        logging.debug(output.stdout)
 
         for line in output.stdout.split("\n"):
             if '{"type":"result"' in line:
