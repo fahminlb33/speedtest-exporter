@@ -50,9 +50,9 @@ app = Flask("Speedtest-Exporter")
 counter_labels = ["test_uuid", "server_id", "isp", "location", "country"]
 counters = {
     "up": Gauge("speedtest_up", "Speedtest status whether the scrape worked"),
-    "packet_loss": Gauge(
-        "speedtest_packet_loss", "Packet loss during Speedtest", counter_labels
-    ),
+    # "packet_loss": Gauge(
+    #     "speedtest_packet_loss", "Packet loss during Speedtest", counter_labels
+    # ),
     "ping_latency": Gauge(
         "speedtest_ping_latency_milliseconds",
         "Ping in ms",
@@ -165,15 +165,18 @@ def metrics():
     result = json.loads(output_json)
 
     server_labels = {
+        "isp": result["isp"],
         "test_uuid": result["result"]["id"],
         "server_id": result["server"]["id"],
-        "isp": result["server"]["name"],
+        "server": result["server"]["name"],
         "location": result["server"]["location"],
         "country": result["server"]["country"],
+        "host": result["server"]["host"],
+        "ip": result["server"]["ip"],
     }
 
     counters["up"].set(1)
-    counters["packet_loss"].labels(**server_labels).set(result["packetLoss"])
+    # counters["packet_loss"].labels(**server_labels).set(result["packetLoss"])
 
     counters["ping_latency"].labels(**server_labels).set(result["ping"]["latency"])
     counters["ping_jitter"].labels(**server_labels).set(result["ping"]["jitter"])

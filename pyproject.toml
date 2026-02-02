@@ -1,6 +1,6 @@
 [project]
 name = "speedtest-exporter"
-version = "0.1.0"
+version = "1.1.0"
 description = "Yet another Speedtest.net exporter for Prometheus"
 readme = "README.md"
 requires-python = ">=3.13"
